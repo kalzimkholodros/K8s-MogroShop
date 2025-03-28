@@ -52,13 +52,20 @@ graph TB
         Payment --> RMQ
     end
 
-    style Client fill:#f9f,stroke:#333,stroke-width:2px
-    style API fill:#bbf,stroke:#333,stroke-width:2px
-    style Auth fill:#dfd,stroke:#333,stroke-width:2px
-    style Product fill:#dfd,stroke:#333,stroke-width:2px
-    style Cart fill:#dfd,stroke:#333,stroke-width:2px
-    style Payment fill:#dfd,stroke:#333,stroke-width:2px
-    style RMQ fill:#fdd,stroke:#333,stroke-width:2px
+    style Client fill:#4a0072,stroke:#333,stroke-width:2px,color:#fff
+    style API fill:#1a365d,stroke:#333,stroke-width:2px,color:#fff
+    style Auth fill:#1e4620,stroke:#333,stroke-width:2px,color:#fff
+    style Product fill:#1e4620,stroke:#333,stroke-width:2px,color:#fff
+    style Cart fill:#1e4620,stroke:#333,stroke-width:2px,color:#fff
+    style Payment fill:#1e4620,stroke:#333,stroke-width:2px,color:#fff
+    style RMQ fill:#6b1b1b,stroke:#333,stroke-width:2px,color:#fff
+    style Databases fill:#2c1810,stroke:#333,stroke-width:2px,color:#fff
+    style Message Broker fill:#1a1a1a,stroke:#333,stroke-width:2px,color:#fff
+    style AuthDB fill:#2c1810,stroke:#333,stroke-width:2px,color:#fff
+    style ProductDB fill:#2c1810,stroke:#333,stroke-width:2px,color:#fff
+    style CartDB fill:#2c1810,stroke:#333,stroke-width:2px,color:#fff
+    style Redis fill:#6b1b1b,stroke:#333,stroke-width:2px,color:#fff
+    style PaymentDB fill:#2c1810,stroke:#333,stroke-width:2px,color:#fff
 ```
 
 ## 🔄 Service Communication Flow
@@ -125,5 +132,59 @@ classDiagram
         +GetProductById(string)
         +UpdateStock(string, int)
         +ValidateProduct(string)
+    }
+```
+
+### 🛒 Cart Service (Port: 5032)
+Shopping cart management with Redis caching.
+
+```mermaid
+classDiagram
+    class CartController {
+        +GetCart(string)
+        +AddItem(string, CartItemDto)
+        +RemoveItem(string, string)
+        +UpdateQuantity(string, int)
+        +ClearCart(string)
+    }
+    class CartService {
+        +GetUserCart(string)
+        +AddToCart(string, CartItem)
+        +RemoveFromCart(string, string)
+        +UpdateItemQuantity(string, string, int)
+        +ClearUserCart(string)
+        +GetCartTotal(string)
+    }
+    class CartItem {
+        +ProductId: string
+        +Quantity: int
+        +Price: decimal
+        +AddedAt: DateTime
+    }
+```
+
+### 💳 Payment Service (Port: 5169)
+Payment processing and transaction management.
+
+```mermaid
+classDiagram
+    class PaymentController {
+        +CreatePayment(PaymentRequest)
+        +GetPaymentStatus(string)
+        +ProcessRefund(string)
+        +GetTransactionHistory(string)
+    }
+    class PaymentService {
+        +InitiatePayment(PaymentDetails)
+        +ValidatePayment(string)
+        +ProcessPaymentRefund(string)
+        +GetUserTransactions(string)
+    }
+    class PaymentDetails {
+        +Amount: decimal
+        +Currency: string
+        +PaymentMethod: string
+        +UserId: string
+        +CartId: string
     }
 ```
