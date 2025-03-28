@@ -1,0 +1,109 @@
+version: '3.8'
+
+services:
+  auth-service:
+    build:
+      context: ./AuthService
+      dockerfile: Dockerfile
+    ports:
+      - "5062:8080"
+    depends_on:
+      - postgres
+      - rabbitmq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=AuthentDB;Username=postgres;Password=postgres
+      - RabbitMQ__HostName=rabbitmq
+
+  product-service:
+    build:
+      context: ./ProductService
+      dockerfile: Dockerfile
+    ports:
+      - "5167:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=ProductDB;Username=postgres;Password=postgres
+      - JWT__Authority=http://auth-service:8080
+      - JWT__Audience=product-service
+    depends_on:
+      - postgres
+      - rabbitmq
+
+  cart-service:
+    build:
+      context: ./CartService
+      dockerfile: Dockerfile
+    ports:
+      - "5032:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=CartDB;Username=postgres;Password=postgres
+      - ConnectionStrings__Redis=redis:6379
+      - JWT__Authority=http://auth-service:8080
+      - JWT__Audience=cart-service
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+
+  payment-service:
+    build:
+      context: ./PaymentService
+      dockerfile: Dockerfile
+    ports:
+      - "5169:8080"
+    depends_on:
+      - postgres
+      - rabbitmq
+      - auth-service
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=PaymentDB;Username=postgres;Password=postgres
+      - JWT__Authority=http://auth-service:8080
+      - RabbitMQ__HostName=rabbitmq
+
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: AuthentDB
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    command: >
+      postgres -c 'max_connections=1000'
+      -c 'shared_buffers=256MB'
+      -c 'effective_cache_size=768MB'
+      -c 'maintenance_work_mem=64MB'
+      -c 'checkpoint_completion_target=0.9'
+      -c 'wal_buffers=7864kB'
+      -c 'default_statistics_target=100'
+      -c 'random_page_cost=1.1'
+      -c 'effective_io_concurrency=200'
+      -c 'work_mem=5242kB'
+      -c 'min_wal_size=1GB'
+      -c 'max_wal_size=4GB'
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+volumes:
+  postgres_data:
+  redis_data: 
