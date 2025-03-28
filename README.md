@@ -2,6 +2,11 @@
 
 A cloud-native e-commerce platform leveraging Docker and Kubernetes orchestration, with Redis caching and RabbitMQ message broker for high-performance microservices architecture.
 
+
+![Ekran görüntüsü 2025-03-28 045601](https://github.com/user-attachments/assets/8fe4d81f-2ab5-4b05-9448-18a7354ad15a)
+
+
+
 <div align="center">
 
 [![.NET](https://img.shields.io/badge/Built%20with-.NET%208-512BD4?logo=.net)](https://dotnet.microsoft.com/)
